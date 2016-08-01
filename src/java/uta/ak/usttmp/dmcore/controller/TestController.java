@@ -5,9 +5,16 @@
  */
 package uta.ak.usttmp.dmcore.controller;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.SimpleScheduleBuilder;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 import uta.ak.usttmp.common.service.TopicEvolutionService;
 import uta.ak.usttmp.common.service.TopicMiningService;
 import uta.ak.usttmp.dmcore.service.MiningTaskService;
+import uta.ak.usttmp.dmcore.task.CollectTwitterJob;
 
 /**
  *
@@ -31,6 +39,32 @@ public class TestController {
     private MiningTaskService miningTaskService;
     @Autowired
     private Scheduler quartzScheduler;
+    
+    @RequestMapping("/collectTwitterDaily")
+    public ModelAndView collectTwitterDaily(String tagName) throws SchedulerException, ParseException {
+ 
+        SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        
+        JobDetail jobDetail = JobBuilder.newJob(CollectTwitterJob.class)
+                .withIdentity("qrtz_job_collecttwitter", "qrtz_job_collecttwitter")
+                .usingJobData("tagName", tagName)
+                .build();  
+        SimpleScheduleBuilder builder = SimpleScheduleBuilder
+                .simpleSchedule()
+                .repeatSecondlyForTotalCount(1000).withIntervalInHours(24);  
+        
+        
+        Trigger trigger = TriggerBuilder.newTrigger()  
+                .withIdentity("qrtz_trigger_collecttwitter", 
+                              "qrtz_trigger_collecttwitter").startAt(format1.parse("2016-08-03 00:05:00"))
+                .withSchedule(builder).build();  
+        
+        quartzScheduler.scheduleJob(jobDetail, trigger);  
+        
+        
+        ModelAndView mav=new ModelAndView("blank");
+        return mav;
+    }
     
     @RequestMapping("/triggerQuartzJob")
     public ModelAndView triggerQuartzJob(String jobname,

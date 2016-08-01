@@ -76,6 +76,9 @@ public class DmcoreInterfaceImpl implements UsttmpInterfaceManager{
 
                 case "DeleteMiningTask":
                     break;
+                    
+                case "CheckStatus":
+                    break;
 
                 default:
                     throw new IllegalArgumentException("No such method");
