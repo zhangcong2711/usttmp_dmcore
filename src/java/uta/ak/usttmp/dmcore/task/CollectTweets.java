@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.log4j.Logger;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
@@ -43,6 +44,8 @@ import twitter4j.conf.ConfigurationBuilder;
  * @author zhangcong
  */
 public class CollectTweets {
+    
+    private static final Logger logger = Logger.getLogger(CollectTwitterJob.class);  
     
     public void collectTweetsByFileList(String sinceDate, 
                                         String untilDate,
@@ -88,41 +91,48 @@ public class CollectTweets {
                 
                 QueryResult result = twitter.search(query);
                 for (Status status : result.getTweets()) {
-                    System.out.println("@" + status.getUser().getScreenName() +
-                                       " | " + status.getCreatedAt().toString() +
-                                       ":" + status.getText());
-                    System.out.println("Inserting the record into the table...");
                     
-                    String formattedDate = format1.format(status.getCreatedAt());
-                    
-                    String interfaceMsg="<message> " +
-                                "    <title> " +
-                                ((null!=status.getUser().getScreenName())?status.getUser().getScreenName():"NO TITLE")+
-                                "    </title> " +
-                                "    <text> " +
-                                StringEscapeUtils.escapeXml10(status.getText()) +
-                                "    </text> " +
-                                "    <textCreatetime> " +
-                                formattedDate +
-                                "    </textCreatetime> " +
-                                "    <tag> " +
-                                tag +
-                                "    </tag> " +
-                                "</message>";
-                    
-                    RestTemplate restTemplate = new RestTemplate();
-     
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.setContentType(MediaType.TEXT_XML);
-                    headers.setAccept(Arrays.asList(MediaType.TEXT_XML));
-                    HttpEntity<String> entity = new HttpEntity<String>(interfaceMsg, headers);
+                    try{
+                        System.out.println("@" + status.getUser().getScreenName() +
+                                            " | " + status.getCreatedAt().toString() +
+                                            ":" + status.getText());
+                        System.out.println("Inserting the record into the table...");
 
-                    ResponseEntity<String> resresult = restTemplate.exchange(restUrl, HttpMethod.POST, entity, String.class);
+                        String formattedDate = format1.format(status.getCreatedAt());
 
-                    System.out.println(resresult.getBody());
-                    if(resresult.getBody().contains("<result>failed</result>")){
-                        throw new RuntimeException("response message error");
+                        String interfaceMsg="<message> " +
+                                    "    <title> " +
+                                    ((null!=status.getUser().getScreenName())?status.getUser().getScreenName():"NO TITLE")+
+                                    "    </title> " +
+                                    "    <text> " +
+                                    StringEscapeUtils.escapeXml10(status.getText()) +
+                                    "    </text> " +
+                                    "    <textCreatetime> " +
+                                    formattedDate +
+                                    "    </textCreatetime> " +
+                                    "    <tag> " +
+                                    tag +
+                                    "    </tag> " +
+                                    "</message>";
+
+                        RestTemplate restTemplate = new RestTemplate();
+
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.TEXT_XML);
+                        headers.setAccept(Arrays.asList(MediaType.TEXT_XML));
+                        HttpEntity<String> entity = new HttpEntity<String>(interfaceMsg, headers);
+
+                        ResponseEntity<String> resresult = restTemplate.exchange(restUrl, HttpMethod.POST, entity, String.class);
+
+                        System.out.println(resresult.getBody());
+                        if(resresult.getBody().contains("<result>failed</result>")){
+                            throw new RuntimeException("response message error");
+                        }
+                    }catch(Exception e){
+                        e.printStackTrace();
+                        logger.error(e.toString());
                     }
+                    
 
                 }
             }
@@ -130,8 +140,8 @@ public class CollectTweets {
             
         } catch (Exception te) {
             te.printStackTrace();
+            logger.error(te.toString());
             System.out.println("Failed: " + te.getMessage());
-            System.exit(-1);
         }
     }
     

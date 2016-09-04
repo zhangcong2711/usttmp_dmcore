@@ -7,6 +7,8 @@ package uta.ak.usttmp.dmcore.controller;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
@@ -46,17 +48,24 @@ public class TestController {
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         
         JobDetail jobDetail = JobBuilder.newJob(CollectTwitterJob.class)
-                .withIdentity("qrtz_job_collecttwitter", "qrtz_job_collecttwitter")
+                .withIdentity("qrtz_job_collecttwitter"+tagName, 
+                              "qrtz_job_collecttwitter"+tagName)
                 .usingJobData("tagName", tagName)
                 .build();  
         SimpleScheduleBuilder builder = SimpleScheduleBuilder
                 .simpleSchedule()
                 .repeatSecondlyForTotalCount(1000).withIntervalInHours(24);  
         
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(Calendar.HOUR_OF_DAY,24);
+        Date jobStartTime=cal.getTime();
+        SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd");
+        String datestr=format2.format(jobStartTime);
         
         Trigger trigger = TriggerBuilder.newTrigger()  
-                .withIdentity("qrtz_trigger_collecttwitter", 
-                              "qrtz_trigger_collecttwitter").startAt(format1.parse("2016-08-03 00:05:00"))
+                .withIdentity("qrtz_job_collecttwitter"+tagName, 
+                              "qrtz_job_collecttwitter"+tagName).startAt(format1.parse(datestr+" 00:05:00"))
                 .withSchedule(builder).build();  
         
         quartzScheduler.scheduleJob(jobDetail, trigger);  
