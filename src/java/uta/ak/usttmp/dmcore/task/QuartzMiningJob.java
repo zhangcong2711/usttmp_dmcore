@@ -31,6 +31,7 @@ import uta.ak.usttmp.common.dao.UsttmpDaoSupport;
 import uta.ak.usttmp.common.model.MiningTask;
 import uta.ak.usttmp.common.dao.mapper.MiningTaskRowMapper;
 import uta.ak.usttmp.common.exception.UsttmpProcessException;
+import uta.ak.usttmp.common.model.LdaMiningTask;
 import uta.ak.usttmp.common.model.Topic;
 import uta.ak.usttmp.common.service.TopicEvolutionService;
 import uta.ak.usttmp.common.service.TopicMiningService;
@@ -100,7 +101,7 @@ public class QuartzMiningJob implements Job{
             
             //Load Miningtask
             String querySql="select * from c_miningtask where mme_eid=?";
-            MiningTask mt=(MiningTask) jt.queryForObject(querySql, 
+            LdaMiningTask mt=(LdaMiningTask) jt.queryForObject(querySql, 
                               new Object[]{miningTaskId}, 
                               new MiningTaskRowMapper());
             
