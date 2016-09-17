@@ -13,8 +13,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import javax.transaction.Transactional;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
+import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleScheduleBuilder;
@@ -79,11 +81,14 @@ public class MiningTaskServiceImpl extends UsttmpDaoSupport
         cal.add(Calendar.HOUR_OF_DAY,mt.getMiningInterval());
         Date jobStartTime=cal.getTime();
         
-        this.scheduleJob(taskId, 
-                         mt.getName(), 
-                         count,
-                         mt.getMiningInterval(),
-                         jobStartTime);
+        String qrtzJobName=this.scheduleJob(taskId, 
+                                            mt.getName(), 
+                                            count,
+                                            mt.getMiningInterval(),
+                                            jobStartTime);
+        
+        String updateJobNameSql="update c_miningtask set qrtz_job_name=? where mme_eid=?";
+        getJdbcTemplate().update(updateJobNameSql, qrtzJobName, taskId);
         
         return 1;
     }
@@ -107,11 +112,16 @@ public class MiningTaskServiceImpl extends UsttmpDaoSupport
                                             "	`topic_num`," +
                                             "	`keyword_num`," +
                                             "	`alpha`," +
-                                            "	`beta`" +
-//                                            "	`qrtz_job_name` " +
+                                            "	`beta`," +
+                                            "	`preprocess_component`," +
+                                            "	`mining_component`," +
+                                            "	`tracking_component`" +
                                             ") " +
                                             "VALUES " +
                                             "	( " +
+                                            "		?, " +
+                                            "		?, " +
+                                            "		?, " +
                                             "		?, " +
                                             "		?, " +
                                             "		?, " +
@@ -147,7 +157,9 @@ public class MiningTaskServiceImpl extends UsttmpDaoSupport
                     pst.setInt(10, mt.getKeywordNum());
                     pst.setDouble(11, mt.getAlpha());
                     pst.setDouble(12, mt.getBeta());
-//                    pst.setString(9, );
+                    pst.setString(13, mt.getPreprocessComponent());
+                    pst.setString(14, mt.getMiningComponent());
+                    pst.setString(15, mt.getTrackingComponent());
                     return pst;
                 }
             },
@@ -158,7 +170,7 @@ public class MiningTaskServiceImpl extends UsttmpDaoSupport
         return taskId;
     }
     
-    protected void scheduleJob(long taskId,
+    protected String scheduleJob(long taskId,
                                String name, 
                                int count, 
                                int miningInterval,
@@ -179,6 +191,8 @@ public class MiningTaskServiceImpl extends UsttmpDaoSupport
                 .withSchedule(builder).build();  
         
         quartzScheduler.scheduleJob(jobDetail, trigger);  
+        
+        return "qrtz_job_"+name;
     }
     
     private boolean checkDuplTask(String name) {
@@ -196,13 +210,52 @@ public class MiningTaskServiceImpl extends UsttmpDaoSupport
     }
 
     @Override
+    @Transactional
     public int deleteMiningTask(long miningTaskId) throws Exception  {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
+        String sql="select * from c_miningtask where mme_eid=?";
+        
+        MiningTask mt=(MiningTask) (this.getJdbcTemplate()
+                                            .queryForObject(sql, 
+                                                            new MiningTaskRowMapper(), 
+                                                            miningTaskId));
+        
+        if(null!=mt.getQrtzJobName()){
+            JobKey jobKey = JobKey.jobKey(mt.getQrtzJobName(), mt.getQrtzJobName());
+            quartzScheduler.interrupt(jobKey);
+            quartzScheduler.deleteJob(jobKey);
+        }
+        
+        String delMtSql="delete from c_miningtask where mme_eid=?";
+        String delTpSql="delete from c_topic where miningtask_id=?";
+        String delEvSql="delete from c_topicevolutionrela where miningtask_id=?";
+        
+        getJdbcTemplate().update(delTpSql, miningTaskId);
+        getJdbcTemplate().update(delEvSql, miningTaskId);
+        getJdbcTemplate().update(delMtSql, miningTaskId);
+        
+        return 1;
     }
 
     @Override
     public int stopMiningTask(long miningTaskId) throws Exception  {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
+        String sql="select * from c_miningtask where mme_eid=?";
+        
+        MiningTask mt=(MiningTask) (this.getJdbcTemplate()
+                                            .queryForObject(sql, 
+                                                            new MiningTaskRowMapper(), 
+                                                            miningTaskId));
+        
+        if(null!=mt.getQrtzJobName()){
+            JobKey jobKey = JobKey.jobKey(mt.getQrtzJobName(), mt.getQrtzJobName());
+            quartzScheduler.interrupt(jobKey);
+            quartzScheduler.deleteJob(jobKey);
+        }
+        
+        updateMiningTaskStatus(miningTaskId, MiningTask.STATUS_STOPED);
+        
+        return 1;
     }
     
     /**
@@ -217,6 +270,20 @@ public class MiningTaskServiceImpl extends UsttmpDaoSupport
      */
     public void setQuartzScheduler(Scheduler quartzScheduler) {
         this.quartzScheduler = quartzScheduler;
+    }
+
+    @Override
+    public void updateMiningTaskStatus(long miningTaskId, int status) throws Exception {
+        
+        String updateSql="UPDATE `c_miningtask`  " +
+                            "SET `status` = ?  " +
+                            "WHERE  " +
+                            "	`mme_eid` = ?;";
+        
+        //Update task status
+        this.getJdbcTemplate().update(updateSql, 
+                                      status,
+                                      miningTaskId);
     }
 
     

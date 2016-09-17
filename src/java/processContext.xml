@@ -10,21 +10,24 @@
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd"
        default-autowire="byName">
     
-    <import resource="classpath:quartzContext.xml"/>
-    <import resource="classpath:serviceContext.xml"/>
-    <import resource="classpath:commonContext.xml" />
-    <import resource="classpath:processContext.xml" />
-
-    <bean id="propertyConfigurer"
-          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"
-          p:location="classpath:jdbc.properties" />
-
-    <bean id="dataSource"
-        class="org.springframework.jdbc.datasource.DriverManagerDataSource"
-        p:driverClassName="${jdbc.driverClassName}"
-        p:url="${jdbc.url}"
-        p:username="${jdbc.username}"
-        p:password="${jdbc.password}"/>
+    
+    
+    <!--
+    <bean id="topicMiningService" 
+        class="uta.ak.usttmp.common.service.impl.TopicMiningServiceImpl" />
+        
+    <bean id="topicEvolutionService" 
+        class="uta.ak.usttmp.common.service.impl.TopicEvolutionServiceImpl"/-->
+    
+    <bean id="englishTwitterPreprocessService" 
+        class="uta.ak.usttmp.common.processInterface.impl.EnglishTwitterPreprocessService" />
+    
+    <bean id="usttmpDefaultTopicMiningService" 
+        class="uta.ak.usttmp.common.processInterface.impl.UsttmpDefaultTopicMiningService" />
+    
+    <bean id="associationFilterEvolutionTrackingService" 
+        class="uta.ak.usttmp.common.processInterface.impl.AssociationFilterEvolutionTrackingService" />
+    
     
 
 

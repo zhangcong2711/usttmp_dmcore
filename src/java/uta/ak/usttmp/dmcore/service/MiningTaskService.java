@@ -24,5 +24,7 @@ public interface MiningTaskService {
     
     public int stopMiningTask(long miningTaskId) throws Exception ;
     
+    public void updateMiningTaskStatus(long miningTaskId, int status) throws Exception;
+    
     public void logMiningTask(int type, long miningTaskId, String content);
 }

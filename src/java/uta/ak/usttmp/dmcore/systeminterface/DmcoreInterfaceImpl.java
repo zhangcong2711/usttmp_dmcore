@@ -72,9 +72,11 @@ public class DmcoreInterfaceImpl implements UsttmpInterfaceManager{
                     break;
 
                 case "StopMiningTask":
+                    miningTaskService.stopMiningTask(Long.parseLong(msgBody));
                     break;
 
                 case "DeleteMiningTask":
+                    miningTaskService.deleteMiningTask(Long.parseLong(msgBody));
                     break;
                     
                 case "CheckStatus":

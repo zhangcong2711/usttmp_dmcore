@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import uta.ak.usttmp.common.service.TopicEvolutionService;
+//import uta.ak.usttmp.common.service.TopicEvolutionService;
 import uta.ak.usttmp.common.service.TopicMiningService;
 import uta.ak.usttmp.dmcore.service.MiningTaskService;
 import uta.ak.usttmp.dmcore.task.CollectTwitterJob;
@@ -35,8 +35,8 @@ public class TestController {
     
     @Autowired
     private TopicMiningService topicMiningService;
-    @Autowired
-    private TopicEvolutionService topicEvolutionService;
+//    @Autowired
+//    private TopicEvolutionService topicEvolutionService;
     @Autowired
     private MiningTaskService miningTaskService;
     @Autowired
@@ -111,19 +111,19 @@ public class TestController {
         this.topicMiningService = topicMiningService;
     }
 
-    /**
-     * @return the topicEvolutionService
-     */
-    public TopicEvolutionService getTopicEvolutionService() {
-        return topicEvolutionService;
-    }
-
-    /**
-     * @param topicEvolutionService the topicEvolutionService to set
-     */
-    public void setTopicEvolutionService(TopicEvolutionService topicEvolutionService) {
-        this.topicEvolutionService = topicEvolutionService;
-    }
+//    /**
+//     * @return the topicEvolutionService
+//     */
+//    public TopicEvolutionService getTopicEvolutionService() {
+//        return topicEvolutionService;
+//    }
+//
+//    /**
+//     * @param topicEvolutionService the topicEvolutionService to set
+//     */
+//    public void setTopicEvolutionService(TopicEvolutionService topicEvolutionService) {
+//        this.topicEvolutionService = topicEvolutionService;
+//    }
 
     /**
      * @return the miningTaskService

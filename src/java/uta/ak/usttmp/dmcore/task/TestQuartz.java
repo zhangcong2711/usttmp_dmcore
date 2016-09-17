@@ -9,7 +9,7 @@ import org.quartz.Job;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import uta.ak.usttmp.common.service.TopicEvolutionService;
+//import uta.ak.usttmp.common.service.TopicEvolutionService;
 import uta.ak.usttmp.common.service.TopicMiningService;
 import uta.ak.usttmp.dmcore.service.MiningTaskService;
 
@@ -23,7 +23,7 @@ public class TestQuartz implements ApplicationContextAware{
     private ApplicationContext applicationContext;
     
     private TopicMiningService topicMiningService;
-    private TopicEvolutionService topicEvolutionService;
+//    private TopicEvolutionService topicEvolutionService;
     private MiningTaskService miningTaskService;
     
     public static void main (String[] args) throws java.io.IOException {
@@ -35,9 +35,9 @@ public class TestQuartz implements ApplicationContextAware{
         topicMiningService=(TopicMiningService) 
                                 applicationContext
                                     .getBean("topicMiningService");
-        topicEvolutionService=(TopicEvolutionService) 
-                                applicationContext
-                                    .getBean("topicEvolutionService");
+//        topicEvolutionService=(TopicEvolutionService) 
+//                                applicationContext
+//                                    .getBean("topicEvolutionService");
         miningTaskService=(MiningTaskService)
                               applicationContext
                                     .getBean("miningTaskService");

@@ -13,8 +13,8 @@
     <bean id="topicMiningService" 
         class="uta.ak.usttmp.common.service.impl.TopicMiningServiceImpl" />
         
-    <bean id="topicEvolutionService" 
-        class="uta.ak.usttmp.common.service.impl.TopicEvolutionServiceImpl"/>
+    <!--bean id="topicEvolutionService" 
+        class="uta.ak.usttmp.common.service.impl.TopicEvolutionServiceImpl"/-->
     
     
 
