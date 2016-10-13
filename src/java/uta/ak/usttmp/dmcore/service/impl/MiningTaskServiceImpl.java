@@ -53,7 +53,7 @@ public class MiningTaskServiceImpl extends UsttmpDaoSupport
         
         String sql="INSERT INTO `c_miningtask_log` ( " +
                     "	`type`, " +
-                    "	`mingingtask_id`, " +
+                    "	`miningtask_id`, " +
                     "	`exception_info`, " +
                     "	`exception_time` " +
                     ") " +
@@ -204,10 +204,10 @@ public class MiningTaskServiceImpl extends UsttmpDaoSupport
         return (null!=lt && !lt.isEmpty());
     }
 
-    @Override
-    public int updateMiningTask(MiningTask mt) throws Exception  {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+//    @Override
+//    public int updateMiningTask(MiningTask mt) throws Exception  {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
 
     @Override
     @Transactional

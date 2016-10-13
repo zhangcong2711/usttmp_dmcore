@@ -24,7 +24,6 @@ import org.springframework.web.servlet.ModelAndView;
 //import uta.ak.usttmp.common.service.TopicEvolutionService;
 import uta.ak.usttmp.common.service.TopicMiningService;
 import uta.ak.usttmp.dmcore.service.MiningTaskService;
-import uta.ak.usttmp.dmcore.task.CollectTwitterJob;
 
 /**
  *
@@ -42,6 +41,7 @@ public class TestController {
     @Autowired
     private Scheduler quartzScheduler;
     
+    /*
     @RequestMapping("/collectTwitterDaily")
     public ModelAndView collectTwitterDaily(String tagName) throws SchedulerException, ParseException {
  
@@ -73,7 +73,7 @@ public class TestController {
         
         ModelAndView mav=new ModelAndView("blank");
         return mav;
-    }
+    }*/
     
     @RequestMapping("/triggerQuartzJob")
     public ModelAndView triggerQuartzJob(String jobname,
@@ -91,6 +91,7 @@ public class TestController {
                                         String jobgroup) throws SchedulerException {
  
         JobKey jobKey = JobKey.jobKey(jobname, jobgroup);
+        quartzScheduler.interrupt(jobKey);
         quartzScheduler.deleteJob(jobKey);
         
         ModelAndView mav=new ModelAndView("blank");

@@ -66,6 +66,14 @@ public class QuartzMiningJob implements Job{
     @Override
     public void execute(JobExecutionContext jec){
         
+        //====== statistic time ======
+        Date statisticStartTime=new Date();
+        Date preprocessTime=new Date();
+        Date miningTime=new Date();
+        Date trackingTime=new Date();
+        
+        long statistic_TotalNum=0;
+        
         String updateSql="UPDATE `c_miningtask`  " +
                             "SET `qrtz_job_name` = ?,  " +
                             " `qrtz_job_exec_count` = ?,  " +
@@ -73,8 +81,6 @@ public class QuartzMiningJob implements Job{
                             "WHERE  " +
                             "	`mme_eid` = ?;";
         
-        
-
         DataSource ds =null;
         JdbcTemplate jt=null;
         
@@ -206,6 +212,20 @@ public class QuartzMiningJob implements Job{
                                                              mt.getTag()}, 
                                                 new RawTextRowMapper());
             
+            //if no raw text to be mined, then return
+            if(null==rawTextList || rawTextList.isEmpty()){
+                int nowStatus=(nextExecCount==totalExecCount) ? MiningTask.STATUS_COMPLETED : MiningTask.STATUS_RUNNING;
+                //Update task status
+                jt.update(updateSql, 
+                          jobName,
+                          nextExecCount,
+                          nowStatus,
+                          miningTaskId);
+                return;
+            }
+            
+            statistic_TotalNum=(null!=rawTextList) ? rawTextList.size() : 0;
+            
             if(hasPC){
                 
                 textList=preprocessComponent.preprocess(mt, rawTextList);
@@ -224,6 +244,19 @@ public class QuartzMiningJob implements Job{
                 }
             }
             
+            //if no text to be mined, then return
+            if(null==textList || textList.isEmpty()){
+                int nowStatus=(nextExecCount==totalExecCount) ? MiningTask.STATUS_COMPLETED : MiningTask.STATUS_RUNNING;
+                //Update task status
+                jt.update(updateSql, 
+                          jobName,
+                          nextExecCount,
+                          nowStatus,
+                          miningTaskId);
+                return;
+            }
+            
+            
             List<Object[]> text_lines=new ArrayList<>();
             for(Text tx : textList){
                 Object[] ojarr=new Object[]{ tx.getTitle(),
@@ -240,6 +273,8 @@ public class QuartzMiningJob implements Job{
             System.out.println("Start to insert text records...");
             jt.batchUpdate(insertSQL, text_lines);
             
+            //statistic time
+            preprocessTime=new Date();
             
             /**************************************************************
              * 2. Mining topics                                           *
@@ -282,7 +317,8 @@ public class QuartzMiningJob implements Job{
             System.out.println("Inserting records into the c_topic table...");
             jt.batchUpdate(insertTpSQL, tpArgsList);
         
-            
+            //statistic time
+            miningTime=new Date();
             
             /**************************************************************
              * 3. Evolution tracking                                      *
@@ -364,6 +400,9 @@ public class QuartzMiningJob implements Job{
                       nowStatus,
                       miningTaskId);
             
+            //statistic time
+            trackingTime=new Date();
+            
         }catch(UsttmpProcessException e){
             
             if(UsttmpProcessException
@@ -390,7 +429,8 @@ public class QuartzMiningJob implements Job{
                                             miningTaskId, 
                                             errors.toString());
             
-            
+            //statistic time
+            trackingTime=new Date();
         }
         catch(Exception e){
             
@@ -403,8 +443,33 @@ public class QuartzMiningJob implements Job{
                                             miningTaskId, 
                                             errors.toString());
             
+            //statistic time
+            trackingTime=new Date();
+            
         }finally{
             
+            long statistic_PreprocessTime=(preprocessTime.getTime()-statisticStartTime.getTime())/1000;
+            long statistic_MiningTime=(miningTime.getTime()-preprocessTime.getTime())/1000;;
+            long statistic_TrackingTime=(trackingTime.getTime()-miningTime.getTime())/1000;
+            long statistic_TotalTime=(trackingTime.getTime()-statisticStartTime.getTime())/1000;
+
+            logger.info("============================ "+
+                        "This is start log. "+
+                        "============================");
+            
+            logger.info("Total number of texts being processed is "+statistic_TotalNum+".");
+            
+            logger.info("Preprocess time is "+statistic_PreprocessTime+" seconds.");
+            
+            logger.info("Mining time is "+statistic_MiningTime+" seconds.");
+            
+            logger.info("Tracking time is "+statistic_TrackingTime+" seconds.");
+            
+            logger.info("Total time is "+statistic_TotalTime+" seconds.");
+            
+            logger.info("============================ " +
+                        "This is end log. " +
+                        "============================");
             
         }
     }

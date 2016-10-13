@@ -18,7 +18,7 @@ public interface MiningTaskService {
     
     public int addMiningTask(MiningTask mt) throws Exception ;
     
-    public int updateMiningTask(MiningTask mt) throws Exception ;
+//    public int updateMiningTask(MiningTask mt) throws Exception ;
     
     public int deleteMiningTask(long miningTaskId) throws Exception ;
     
